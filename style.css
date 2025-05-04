@@ -162,3 +162,8 @@ select.category-filter {
         max-height: 381px; /* Slightly smaller height on mobile */
     }
 }
+
+.instrument-list li.highlighted-instrument {
+    background-color: var(--base);
+}
+

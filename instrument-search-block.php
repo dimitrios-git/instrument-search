@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Instrument Search Block & Widget
  * Description: Search instruments with multiple filter styles - works as both block and widget.
- * Version: 1.2
+ * Version: 1.3
  * Author: Dimitrios Charalampidis
  */
 

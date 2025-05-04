@@ -10,16 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterInstruments = () => {
             const rawSearchTerm = searchInput.value.toLowerCase();
             const searchTerm = normalizeString(rawSearchTerm);
-
+        
             let activeCategories = [];
-
+        
             if(block.classList.contains('filter-style-dropdown')) {
                 const select = block.querySelector('select.category-filter');
                 activeCategories = select.value === 'all' ? [] : [select.value];
             }
             else if(block.classList.contains('filter-style-chips')) {
                 const activeChip = block.querySelector('.category-chip.active');
-                activeCategories = activeChip?.dataset.category === 'all' ? 
+                activeCategories = activeChip?.dataset.category === 'all' ?
                     [] : [activeChip?.dataset.category];
             }
             else if(block.classList.contains('filter-style-checkboxes')) {
@@ -27,18 +27,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     block.querySelectorAll('.category-checkbox input:checked')
                 ).map(cb => cb.value);
             }
-
+        
+            let firstVisible = null;
+        
             items.forEach(item => {
+                item.classList.remove('highlighted-instrument'); // Remove previous highlight
+        
                 const rawItemTitle = item.dataset.title.toLowerCase();
                 const itemTitle = normalizeString(rawItemTitle);
-                
+        
                 const itemCategories = item.dataset.categories.split(' ');
                 const matchesSearch = itemTitle.includes(searchTerm);
-                const matchesCategories = activeCategories.length === 0 || 
+                const matchesCategories = activeCategories.length === 0 ||
                     activeCategories.some(cat => itemCategories.includes(cat));
-
-                item.style.display = (matchesSearch && matchesCategories) ? 'block' : 'none';
+        
+                const shouldShow = matchesSearch && matchesCategories;
+                item.style.display = shouldShow ? 'block' : 'none';
+        
+                if (shouldShow && !firstVisible) {
+                    firstVisible = item;
+                }
             });
+        
+            if (firstVisible) {
+                firstVisible.classList.add('highlighted-instrument');
+            }
         };
 
         // Event listeners
@@ -68,6 +81,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         searchInput.addEventListener('input', filterInstruments);
+
+        searchInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission if inside a form
+        
+                // Find the first visible (highlighted) item dynamically
+                const visibleItems = Array.from(block.querySelectorAll('.instrument-list li'))
+                    .filter(item => item.style.display !== 'none');
+        
+                if (visibleItems.length > 0) {
+                    const firstLink = visibleItems[0].querySelector('a');
+                    if (firstLink) {
+                        window.location.href = firstLink.href;
+                    }
+                }
+            }
+        });
+
     });
 });
 
