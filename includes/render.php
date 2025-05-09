@@ -1,16 +1,6 @@
 <?php
-/**
- * Plugin Name: Instrument Search Block & Widget
- * Description: Search instruments with multiple filter styles - works as both block and widget.
- * Version: 1.3
- * Author: Dimitrios Charalampidis
- */
+defined('ABSPATH') || exit;
 
-defined( 'ABSPATH' ) || exit;
-
-// =====================
-// Shared Rendering Function
-// =====================
 function instrument_search_render($attributes = array()) {
     $defaults = array(
         'showCategoryFilter' => true,
@@ -18,14 +8,12 @@ function instrument_search_render($attributes = array()) {
     );
     $attributes = wp_parse_args($attributes, $defaults);
 
-    // Get hierarchical categories
     $all_terms = get_terms(array(
         'taxonomy' => 'instrument-category',
         'hide_empty' => false,
         'orderby' => 'parent name',
     ));
 
-    // Build hierarchical tree
     $build_hierarchy = function($terms, $parent_id = 0) use (&$build_hierarchy) {
         $hierarchy = array();
         foreach ($terms as $term) {
@@ -120,7 +108,7 @@ function instrument_search_render($attributes = array()) {
             <?php endif; ?>
         </div>
        
-	<div class="instrument-list-container"> 
+        <div class="instrument-list-container"> 
             <ul class="instrument-list">
                 <?php foreach($instruments as $instrument) : 
                     $terms = get_the_terms($instrument->ID, 'instrument-category');
@@ -134,141 +122,23 @@ function instrument_search_render($attributes = array()) {
                 </li>
                 <?php endforeach; ?>
             </ul>
-	</div>
+        </div>
     </div>
     <?php
-    
+
     wp_enqueue_script(
         'instrument-search-frontend',
-        plugins_url( 'frontend.js', __FILE__ ),
+        INSTRUMENT_SEARCH_PLUGIN_URL . 'assets/js/frontend.js',
         array(),
-        filemtime(plugin_dir_path(__FILE__) . 'frontend.js'),
+        filemtime(INSTRUMENT_SEARCH_PLUGIN_DIR . 'assets/js/frontend.js'),
         true
     );
-    
+
     wp_enqueue_style(
         'instrument-search-styles',
-        plugins_url( 'style.css', __FILE__ )
+        INSTRUMENT_SEARCH_PLUGIN_URL . 'assets/css/instrument-search.css'
     );
 
     return ob_get_clean();
 }
-
-// =====================
-// Gutenberg Block
-// =====================
-function instrument_search_block_init() {
-    wp_register_script(
-        'instrument-search-block-editor',
-        plugins_url( 'block.js', __FILE__ ),
-        array('wp-blocks', 'wp-element', 'wp-components', 'wp-editor', 'wp-i18n'),
-        filemtime(plugin_dir_path(__FILE__) . 'block.js')
-    );
-
-    register_block_type('instrument/search-block', array(
-        'editor_script' => 'instrument-search-block-editor',
-        'render_callback' => 'instrument_search_render',
-        'attributes' => array(
-            'showCategoryFilter' => array(
-                'type' => 'boolean',
-                'default' => true
-            ),
-            'filterStyle' => array(
-                'type' => 'string',
-                'default' => 'dropdown'
-            )
-        )
-    ));
-}
-add_action( 'init', 'instrument_search_block_init' );
-
-// =====================
-// Widget Implementation
-// =====================
-if (!class_exists('Instrument_Search_Widget')) {
-    class Instrument_Search_Widget extends WP_Widget {
-        
-        public function __construct() {
-            parent::__construct(
-                'instrument_search_widget',
-                __('Instrument Search', 'instrument-search'),
-                array('description' => __('Search instruments with category filtering', 'instrument-search'))
-            );
-        }
-
-        public function widget($args, $instance) {
-            echo $args['before_widget'];
-            $attributes = array(
-                'showCategoryFilter' => !empty($instance['show_category_filter']),
-                'filterStyle' => isset($instance['filter_style']) ? $instance['filter_style'] : 'dropdown'
-            );
-            echo instrument_search_render($attributes);
-            echo $args['after_widget'];
-        }
-
-        public function form($instance) {
-            $defaults = array(
-                'show_category_filter' => true,
-                'filter_style' => 'dropdown'
-            );
-            $instance = wp_parse_args((array) $instance, $defaults);
-            ?>
-            <p>
-                <input type="checkbox" 
-                    id="<?php echo esc_attr($this->get_field_id('show_category_filter')); ?>" 
-                    name="<?php echo esc_attr($this->get_field_name('show_category_filter')); ?>" 
-                    <?php checked($instance['show_category_filter'], true); ?>>
-                <label for="<?php echo esc_attr($this->get_field_id('show_category_filter')); ?>">
-                    <?php esc_html_e('Show Category Filter', 'instrument-search'); ?>
-                </label>
-            </p>
-            
-            <p>
-                <label for="<?php echo esc_attr($this->get_field_id('filter_style')); ?>">
-                    <?php esc_html_e('Filter Style:', 'instrument-search'); ?>
-                </label>
-                <select class="widefat" 
-                        id="<?php echo esc_attr($this->get_field_id('filter_style')); ?>" 
-                        name="<?php echo esc_attr($this->get_field_name('filter_style')); ?>">
-                    <option value="dropdown" <?php selected($instance['filter_style'], 'dropdown'); ?>>
-                        <?php esc_html_e('Dropdown', 'instrument-search'); ?>
-                    </option>
-                    <option value="chips" <?php selected($instance['filter_style'], 'chips'); ?>>
-                        <?php esc_html_e('Chips', 'instrument-search'); ?>
-                    </option>
-                    <option value="checkboxes" <?php selected($instance['filter_style'], 'checkboxes'); ?>>
-                        <?php esc_html_e('Checkboxes', 'instrument-search'); ?>
-                    </option>
-                </select>
-            </p>
-            <?php
-        }
-
-        public function update($new_instance, $old_instance) {
-            $instance = array();
-            $instance['show_category_filter'] = !empty($new_instance['show_category_filter']);
-            $instance['filter_style'] = sanitize_text_field($new_instance['filter_style']);
-            return $instance;
-        }
-    }
-}
-
-if (!function_exists('register_instrument_search_widget')) {
-    function register_instrument_search_widget() {
-        register_widget('Instrument_Search_Widget');
-    }
-    add_action('widgets_init', 'register_instrument_search_widget');
-}
-
-// =====================
-// Translations
-// =====================
-function instrument_search_load_textdomain() {
-    load_plugin_textdomain(
-        'instrument-search',
-        false,
-        dirname(plugin_basename(__FILE__)) . '/languages/'
-    );
-}
-add_action('init', 'instrument_search_load_textdomain');
 

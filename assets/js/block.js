@@ -1,3 +1,4 @@
+// assets/js/block.js
 const { registerBlockType } = wp.blocks;
 const { CheckboxControl, PanelBody, SelectControl } = wp.components;
 const { InspectorControls } = wp.blockEditor;
