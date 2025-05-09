@@ -1,3 +1,4 @@
+// assets/js/frontend.js
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.instrument-search-block').forEach(block => {
         const searchInput = block.querySelector('.search-input');

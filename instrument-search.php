@@ -140,15 +140,15 @@ function instrument_search_render($attributes = array()) {
     
     wp_enqueue_script(
         'instrument-search-frontend',
-        plugins_url( 'frontend.js', __FILE__ ),
+        plugins_url( 'assets/js/frontend.js', __FILE__ ),
         array(),
-        filemtime(plugin_dir_path(__FILE__) . 'frontend.js'),
+        filemtime(plugin_dir_path(__FILE__) . 'assets/js/frontend.js'),
         true
     );
     
     wp_enqueue_style(
         'instrument-search-styles',
-        plugins_url( 'style.css', __FILE__ )
+        plugins_url( 'assets/css/instrument-search.css', __FILE__ )
     );
 
     return ob_get_clean();
@@ -160,9 +160,9 @@ function instrument_search_render($attributes = array()) {
 function instrument_search_block_init() {
     wp_register_script(
         'instrument-search-block-editor',
-        plugins_url( 'block.js', __FILE__ ),
+        plugins_url( 'assets/js/block.js', __FILE__ ),
         array('wp-blocks', 'wp-element', 'wp-components', 'wp-editor', 'wp-i18n'),
-        filemtime(plugin_dir_path(__FILE__) . 'block.js')
+        filemtime(plugin_dir_path(__FILE__) . 'assets/js/block.js')
     );
 
     register_block_type('instrument/search-block', array(
